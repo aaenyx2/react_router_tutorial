@@ -163,4 +163,155 @@ Root 컴포넌트를 만드세요. 이 컴포넌트는 우리의 웹어플리케
 
 첫번째 라우트 / 의 경우에는 Home 컴포넌트를 보여주게 했고, 두번째 라우트 /about 에서는 About 컴포넌트를 보여주게 했습니다.
 
-첫번째 라우트의 경우엔 exact 가 붙어있지요? 이게 붙어있으면 주어진 경로와 정확히 맞아 떨어져야만 설정한 컴포넌트를 보여줍니다.
+첫번째 라우트의 경우엔 exact 가 붙어있지요? 이게 붙어있으면 주어진 경로와 정확히 맞아 떨어져야만 설정한 컴포넌트를 보여줌
+
+historyApiFallback 설정을 통하여 어떤 요청으로 들어오든지 index.html 을 보여주도록 설정되어있다.
+
+
+### 3. 라우트 파라미터 읽기
+
+* history : push, replace 등의 메소드를 이용해 다른 경로로 이동하거나 앞 뒤 페이지로 전환 가능
+* location : 현재 경로에 대한 정보와 URL query 정보를 가짐
+* match : 이 객체가 어떤 라우트에 매칭되어 있는지, 그리고 params 정보를 가짐
+
+먼저 params 부터 사용해보자.
+
+App 파일에서 params 정보를 가지는 라우트를 설정하고 해당 컴포넌트에 match.params.name을 출력해보자.
+
+* src/pages/About.js
+
+                import React from 'react';
+
+                const About = ({match}) => {
+                return (
+                        <div>
+                        <h2>About {match.params.name}</h2>
+                        </div>
+                );
+                };
+
+                export default About;
+
+
+query 사용해보자.
+
+                yarn add query-string
+
+
+그리고 query를 사용할 컴포넌트에서 query 정보를 담은 location을 비동기 할당받고 이를 콘솔 창에 출력해보자.
+
+
+                import React from 'react';
+                import queryString from 'query-string';
+
+                const About = ({location, match}) => {
+                const query = queryString.parse(location.search);
+                console.log(query);
+
+                return (
+                        <div>
+                        <h2>About {match.params.name}</h2>
+                        </div>
+                );
+                };
+
+                export default About;
+
+
+http://localhost:3000/about/name?detail=true 링크로 접속해보면 'detail' query 값이 true로 설정되었다. 이 때 boolean이 아니라 문자열이라는 사실을 주의.
+
+이 query 값을 따라 컴포넌트에 조건부 렌더링을 해보자.
+
+                        import React from 'react';
+                        import queryString from 'query-string';
+
+                        const About = ({location, match}) => {
+                        const query = queryString.parse(location.search);
+                        console.log(query);
+                        const detail = query.detail = "true"
+                        return (
+                                <div>
+                                <h2>About {match.params.name} </h2>
+                                {detail && 'detail: true'}
+                                </div>
+                        );
+                        };
+
+                        export default About;
+
+
+라우트 이동을 위한 목차 컴포넌트 Menu.js를 생성.
+라우터 간 이동은 <a> 가 아니라 <Link to>를 사용해야 한다. 따라서 react-router-dom에서 Link를 import해오자.
+
+                import React from 'react';
+                import { Link } from 'react-router-dom';
+
+                const Menu = () => {
+                return (
+                        <div>
+                        <ul>
+                                <li><Link to="/">Home</Link></li>
+                                <li><Link to="/about">About</Link></li>
+                                <li><Link to="/about/foo">About Foo</Link></li>
+                        </ul>
+                        <hr/>
+                        </div>
+                );
+                };
+
+                export default Menu;
+
+
+### 4. 라우트 안의 라우트
+
+Post 라는 페이지 컴포넌트를 만들자. 이 컴포넌트에서는 params.id 를 받아와서 렌더링한다.
+
+
+* src/pages/Post.js
+
+
+                        import React from 'react';
+
+                        const Post = ({match}) => {
+                        return (
+                                <div>
+                                포스트 {match.params.id}
+                                </div>
+                        );
+                        };
+
+                        export default Post;
+
+
+* src/pages/Posts
+
+
+                        import React from 'react';
+                        import { Link, Route } from 'react-router-dom';
+                        import { Post } from 'pages'; 
+
+                        const Posts = ({match}) => {
+                        return (
+                                <div>
+                                <h2>Post List</h2> 
+                                <ul>
+                                        <li><Link to={`${match.url}/1`}>Post #1</Link></li>
+                                        <li><Link to={`${match.url}/2`}>Post #2</Link></li>
+                                        <li><Link to={`${match.url}/3`}>Post #3</Link></li>
+                                        <li><Link to={`${match.url}/4`}>Post #4</Link></li>
+                                </ul>
+                                <Route exact path={match.url} render={()=>(<h3>Please select any post</h3>)}/>
+                                <Route path={`${match.url}/:id`} component={Post}/>
+                                </div>
+                        );
+                        };
+
+                        export default Posts;
+
+
+page index에서 posts와 post의 export 설정을 마친다. 이후 Menu에 Posts li를 만들고, Posts의 Link to 에 {match.url}이 사용되었는데, 이 url 은 현재의 라우트의 경로를 알려줌.
+
+즉 ”/posts/1″ 랑 여기서는 같다.
+
+
+* Menu의 Link to에 active style이나 별도의 
