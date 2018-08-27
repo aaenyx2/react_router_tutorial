@@ -314,4 +314,13 @@ page index에서 posts와 post의 export 설정을 마친다. 이후 Menu에 Pos
 즉 ”/posts/1″ 랑 여기서는 같다.
 
 
-* Menu의 Link to에 active style이나 별도의 
+* Menu의 Link to에 active style이나 별도의 class style을 적용하려면 <NavLink to="..." activeStyle={...} ..></Navlink>를 사용한다.
+
+
+
+
+# 2. 코드 스플리팅
+
+## 1. 코드 스플리팅의 기본
+
+                $ yarn eject
