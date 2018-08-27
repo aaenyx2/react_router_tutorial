@@ -323,4 +323,50 @@ page index에서 posts와 post의 export 설정을 마친다. 이후 Menu에 Pos
 
 ## 1. 코드 스플리팅의 기본
 
+### 1. webpack 설정을 위해 파일들을 eject 하자
+
                 $ yarn eject
+
+### 2. config/webpack.config..../js 들어가서 entry를 배열[] 형태에서 객체{} 형태로 바꿔주자.
+
+                entry: [
+                require.resolve('react-dev-utils/webpackHotDevClient'),
+                require.resolve('./polyfills'),
+                require.resolve('react-error-overlay'),
+                paths.appIndexJs,
+                ]
+
+
+이 부분을 아래와 같이 수정
+
+
+
+                entry: {
+                dev: 'react-error-overlay',
+                vendor: [
+                require.resolve('./polyfills'),
+                'react',
+                'react-dom',
+                'react-router-dom'
+                ],
+                app: ['react-dev-utils/webpackHotDevClient', paths.appIndexJs]
+                }
+
+
+개발에만 필요한 react-error-overlay 는 dev 라는 이름으로 저장하게했고, 전역적으로 사용되는 라이브러리는 vendor 에 넣었으며, (polyfill 은 구형 브라우저에서도 Promise 등의 ES6 전용 코드가 제대로 작동하게하는 라이브러리임) app 부분엔 webpackHotDevClient 와 appIndexJs 를 넣었음
+
+애초에 개발서버를 위한 웹팩 설정에서는 코드 스플리팅을 할 필요가 없지만 이 과정을 배워보면서 어떻게 작동하는지 알아보기 위함.
+
+코드스플리팅을 이해하고 난 다음에는, 프로덕션에서만 코드스플리팅을 하도록 설정할 것임.
+
+
+### 3. entry 를 수정했면, output 부분의 filename 과 chunkFilename도 다음과 같이 변경
+
+
+                filename: 'static/js/[name].[hash].js',
+                chunkFilename: 'static/js/[name].[chunkhash].chunk.js'
+
+
+filename 부분에는 [hash] 값을 주었는데요, 이 해쉬 값은 앱이 빌드 될 때마다 새로운 값이 생겨납니다. 그 하단의 chunkFilename 은 [chunkhash]가 들어가있습니다. 웹팩쪽에서 미리 분리시킨 파일말고, 우리가 코드를 통해 직접 분리시킬 파일들은 chunkFile 이라고 칭합니다. 이 부분은 잠시 후 알아볼것이구요, 이렇게 파일이름에 해쉬값을 포함시켜주면 각 파일마다 고유의 이름을 가질 수 있게 되고, 코드가 업데이트 되었을때 기존 캐시를 사용하지 않고 최신 파일을 불러와서 사용하도록 할 수 있습니다.
+
+설정을 다 하셨다면, 웹팩 개발서버를 끄고 다시 실행하세요.
